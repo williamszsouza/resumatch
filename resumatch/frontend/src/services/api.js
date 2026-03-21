@@ -61,7 +61,7 @@ api.interceptors.response.use(
  * }
  */
 export async function analyzeResume(resumeBase64, jobDescription) {
-  return api.post('/analyze', {
+  return api.post('api/analyze', {
     resume_pdf_base64: resumeBase64,
     job_description: jobDescription
   })
