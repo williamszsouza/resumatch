@@ -6,7 +6,7 @@ import axios from 'axios'
  * In production, set VITE_API_BASE_URL in your .env
  */
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: import.meta.env.VITE_API_URL || 'api',
   timeout: 120_000, // 2 min – AI calls can be slow
   headers: { 'Content-Type': 'application/json' }
 })
