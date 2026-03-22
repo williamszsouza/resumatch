@@ -43,106 +43,54 @@
 
       <AlertBanner :message="error" type="error" @dismiss="error = ''" />
 
-      <BaseButton size="lg" :loading="loading" @click="handleAnalyzeClick">
+      <BaseButton size="lg" :loading="loading" @click="runAnalysis">
         <span class="btn-dot" /> Analisar compatibilidade
       </BaseButton>
 
       <LoadingSteps :visible="loading" :current-step="currentStep" />
       <AnalysisResults :result="result" @reset="reset" />
     </main>
-
-    <!-- Modal de anúncio (só para plano Free) -->
-    <AdModal
-      :open="showAd"
-      :duration="adDuration"
-      :is-mock="true"
-      @completed="onAdCompleted"
-      @close="showAd = false"
-    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuthStore }    from '@/stores/auth.js'
-import { useBillingStore } from '@/stores/billing.js'
 import { analyzeResume }   from '@/services/api.js'
-import {
-  ADS_ENABLED,
-  isFreePlan,
-  getNextAdDuration,
-  incrementAnalysisCount
-} from '../../../resumatch-backend/src/services/adService'
-import AppHeader       from '@/components/AppHeader.vue'
-import UploadZone      from '@/components/UploadZone.vue'
-import LoadingSteps    from '@/components/LoadingSteps.vue'
-import AnalysisResults from '@/components/AnalysisResults.vue'
-import BaseButton      from '@/components/ui/BaseButton.vue'
-import AlertBanner     from '@/components/ui/AlertBanner.vue'
-import AdModal         from '@/components/AdModal.vue'
+import AppHeader           from '@/components/AppHeader.vue'
+import UploadZone          from '@/components/UploadZone.vue'
+import LoadingSteps        from '@/components/LoadingSteps.vue'
+import AnalysisResults     from '@/components/AnalysisResults.vue'
+import BaseButton          from '@/components/ui/BaseButton.vue'
+import AlertBanner         from '@/components/ui/AlertBanner.vue'
 
-const auth    = useAuthStore()
-const billing = useBillingStore()
-
+const auth      = useAuthStore()
 const firstName = computed(() => auth.user?.name?.split(' ')[0] || 'usuário')
 
-const cvBase64       = ref(null)
-const jobDescription = ref('')
-const loading        = ref(false)
-const currentStep    = ref(1)
-const error          = ref('')
-const result         = ref(null)
-const cvZone         = ref(null)
-
-// ── Ad state ──────────────────────────────────────────────────────────────────
-const showAd    = ref(false)
-const adDuration = ref(15)
-
-onMounted(() => billing.fetchSubscription())
+const cvBase64        = ref(null)
+const jobDescription  = ref('')
+const loading         = ref(false)
+const currentStep     = ref(1)
+const error           = ref('')
+const result          = ref(null)
+const cvZone          = ref(null)
 
 function onCvSelected({ base64 }) { cvBase64.value = base64 }
 
-/**
- * Intercepta o clique em Analisar.
- * Se for plano free e ads habilitados → mostra anúncio primeiro.
- * Caso contrário → roda a análise diretamente.
- */
-function handleAnalyzeClick() {
-  error.value = ''
-
-  if (!cvBase64.value)              return (error.value = 'Selecione um currículo em PDF.')
-  if (!jobDescription.value.trim()) return (error.value = 'Cole a descrição da vaga.')
-
-  const needsAd = ADS_ENABLED && isFreePlan(billing.subscription)
-
-  if (needsAd) {
-    adDuration.value = getNextAdDuration()
-    showAd.value     = true
-  } else {
-    runAnalysis()
-  }
-}
-
-/**
- * Chamado pelo AdModal quando o timer zera e o usuário clica em Continuar.
- */
-function onAdCompleted() {
-  incrementAnalysisCount()
-  showAd.value = false
-  runAnalysis()
-}
-
 async function runAnalysis() {
+  error.value  = ''
+  result.value = null
+  if (!cvBase64.value)               return (error.value = 'Selecione um currículo em PDF.')
+  if (!jobDescription.value.trim())  return (error.value = 'Cole a descrição da vaga.')
+
   loading.value     = true
   currentStep.value = 1
-  result.value      = null
 
   const timers = [
     setTimeout(() => { currentStep.value = 2 }, 1200),
     setTimeout(() => { currentStep.value = 3 }, 2800),
     setTimeout(() => { currentStep.value = 4 }, 4500)
   ]
-
   try {
     const data = await analyzeResume(cvBase64.value, jobDescription.value)
     timers.forEach(clearTimeout)
@@ -184,37 +132,20 @@ function reset() {
 .dash-title em { font-style: italic; color: var(--emerald); }
 .dash-sub { margin-top: 0.9rem; color: var(--muted); font-size: 0.95rem; max-width: 460px; }
 
-.deco-line {
-  width: 40px; height: 3px;
-  background: var(--emerald-bright); border-radius: 2px; margin-bottom: 2.5rem;
-}
+.deco-line { width: 40px; height: 3px; background: var(--emerald-bright); border-radius: 2px; margin-bottom: 2.5rem; }
 
 .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-
 .static-card {
   border: 1.5px dashed var(--paper-dark); border-radius: var(--radius-md);
   padding: 2rem; background: rgba(255,255,255,0.4);
 }
-.card-icon {
-  width: 40px; height: 40px; border-radius: var(--radius-sm);
-  background: var(--paper-mid); display: flex; align-items: center;
-  justify-content: center; font-size: 1.1rem; margin-bottom: 1rem;
-}
-.card-label {
-  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem;
-}
-.card-title-text {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.15rem; font-weight: 500; margin-bottom: 0.4rem;
-}
+.card-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--paper-mid); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 1rem; }
+.card-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+.card-title-text { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 500; margin-bottom: 0.4rem; }
 .card-hint { font-size: 0.8rem; color: var(--muted); }
 
 .field-wrap { margin-bottom: 2rem; }
-.field-label {
-  display: block; font-size: 0.72rem; font-weight: 600;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem;
-}
+.field-label { display: block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
 textarea {
   width: 100%; min-height: 180px; padding: 1.2rem 1.4rem;
   background: rgba(255,255,255,0.5); border: 1.5px solid var(--paper-dark);
@@ -224,10 +155,7 @@ textarea {
 textarea:focus { outline: none; border-color: var(--emerald); }
 textarea::placeholder { color: var(--muted); opacity: 0.6; }
 
-.btn-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--emerald-bright); flex-shrink: 0;
-}
+.btn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald-bright); flex-shrink: 0; }
 
 @media (max-width: 680px) {
   .dashboard { padding: 2.5rem 1.25rem; }
