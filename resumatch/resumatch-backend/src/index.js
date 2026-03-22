@@ -14,16 +14,18 @@ const app = express()
 app.set('trust proxy', 1)
 app.use(helmetMiddleware)
 app.use(corsMiddleware)
+
 app.options('*', corsMiddleware)
+
 app.use(requestLogger)
 app.use(express.json({ limit: config.maxPayloadSize }))
 app.use(cookieParser())
 
 // ── Rotas ─────────────────────────────────────────────────────────────────────
-app.use('/api/auth',      authRouter)
-app.use('/api/users',     usersRouter)
-app.use('/api',           analyzeRouter)
-app.use('/api',           plansRouter)
+app.use('/api/auth',  authRouter)
+app.use('/api/users', usersRouter)
+app.use('/api',       analyzeRouter)
+app.use('/api',       plansRouter)
 
 app.get('/health', (_req, res) =>
   res.json({ status: 'ok', env: config.nodeEnv, ts: new Date().toISOString() })
