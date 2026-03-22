@@ -6,7 +6,6 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' }
 })
 
-console.log(import.meta.env.VITE_API_URL)
 
 
 // Injeta token em todas as requisições
@@ -50,8 +49,6 @@ export async function getMe() {
   return api.get('/auth/me')
 }
 export async function updateProfile(uuid, data) {
-  console.log(data)
-  console.log(uuid)
   return api.patch(`/users/${uuid}`, data)
 }
 export async function deleteAccount(uuid) {
@@ -61,7 +58,7 @@ export async function getPlans() {
   return api.get('/plans')
 }
 export async function getMySubscription() {
-  return api.get('/subscriptions/current')
+  return api.get('/subscriptions/me')
 }
 export async function createSubscription(planId) {
   return api.post('/subscriptions', { plan_id: planId })

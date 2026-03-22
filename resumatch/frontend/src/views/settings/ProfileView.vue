@@ -11,7 +11,7 @@
       <form class="profile-form" @submit.prevent="saveProfile">
         <BaseInput v-model="form.name"  label="Nome completo" placeholder="Seu nome" />
         <BaseInput v-model="form.email" label="E-mail" type="email" placeholder="voce@empresa.com" />
-        <BaseInput v-model="form.company_name" label="Empresa" placeholder="Nome da empresa (opcional)" />
+        <BaseInput v-model="form.company" label="Empresa" placeholder="Nome da empresa (opcional)" />
 
         <div class="form-actions">
           <BaseButton type="submit" :loading="saving">Salvar alterações</BaseButton>
@@ -79,7 +79,7 @@ import AlertBanner from '@/components/ui/AlertBanner.vue'
 const auth   = useAuthStore()
 const router = useRouter()
 
-const form   = reactive({ name: '', email: '', company_name: '' })
+const form   = reactive({ name: '', email: '', company: '' })
 const saving = ref(false)
 const feedback = reactive({ message: '', type: 'success' })
 
@@ -90,8 +90,7 @@ onMounted(() => {
   if (auth.user) {
     form.name    = auth.user.name    || ''
     form.email   = auth.user.email   || ''
-    form.company_name = auth.user.company_name || ''
-
+    form.company = auth.user.company || ''
   }
 })
 
@@ -99,7 +98,7 @@ async function saveProfile() {
   saving.value = true
   feedback.message = ''
   try {
-    const updated = await updateProfile(auth.user.uuid,form)
+    const updated = await updateProfile(form)
     auth.user = { ...auth.user, ...updated }
     feedback.type    = 'success'
     feedback.message = 'Perfil atualizado com sucesso!'

@@ -40,13 +40,9 @@ export async function createUser({ name, email, passwordHash = null, googleId = 
 }
 
 export async function updateUser(uuid, fields) {
-  const allowed = ['name', 'email', 'avatar_url', 'onboarded','company_name','role','goal']
+  const allowed = ['name', 'email', 'avatar_url', 'onboarded']
   const entries = Object.entries(fields).filter(([k]) => allowed.includes(k))
   if (!entries.length) return findUserByUuid(uuid)
-
-  console.log('[updateUser] uuid:', uuid)
-  console.log('[updateUser] fields recebidos:', fields)
-  console.log('[updateUser] entries filtradas:', entries)
 
   const setClauses = entries.map(([k]) => `${k} = ?`).join(', ')
   const values     = entries.map(([, v]) => v)

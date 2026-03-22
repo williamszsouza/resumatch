@@ -21,7 +21,7 @@ plansRouter.get('/plans', async (_req, res, next) => {
 })
 
 // GET /api/subscriptions/me
-plansRouter.get('/subscriptions/current', requireAuth, async (req, res, next) => {
+plansRouter.get('/subscriptions/me', requireAuth, async (req, res, next) => {
   try {
     const sub = await getSubscriptionByUser(req.user.uuid)
     res.json(sub)
