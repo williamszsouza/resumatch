@@ -9,12 +9,13 @@ export const usersRouter = Router()
 // PATCH /api/users/:uuid — atualiza perfil
 usersRouter.patch('/:uuid', requireAuth, async (req, res, next) => {
   try {
+    console.log(req)
     // Garante que o usuário só pode editar a si mesmo
     if (req.params.uuid !== req.user.uuid) {
       throw new UnauthorizedError('Você não pode editar outro usuário.')
     }
 
-    const allowed = ['name', 'email', 'avatar_url']
+    const allowed = ['name', 'email', 'avatar_url','company_name','role','goal','onboarded']
     const fields  = {}
     for (const key of allowed) {
       if (req.body[key] !== undefined) fields[key] = req.body[key]
